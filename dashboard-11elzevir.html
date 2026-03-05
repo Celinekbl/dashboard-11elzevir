@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11 ELZEVIR — Contract Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --navy:#1C2626;--teal:#81C8C1;--teal-dark:#4a9e97;--teal-light:#e2f5f3;
+    --blue:#1C2626;--blue-light:#e2f5f3;--blue-mid:#81C8C1;
+    --green:#059669;--green-light:#d1fae5;--amber:#d97706;--amber-light:#fef3c7;
+    --indigo:#4f46e5;--indigo-light:#e0e7ff;--red:#dc2626;--red-light:#fee2e2;
+    --bg:#f8fafc;--surface:#ffffff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+    --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.06);
+    --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.05);
+  }
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+
+  /* HEADER */
+  .header{background:var(--navy);color:#fff;padding:0}
+  .header-inner{max-width:1280px;margin:0 auto;padding:28px 32px 0}
+  .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .header-logo{display:flex;align-items:center;gap:12px}
+  .logo-mark{width:40px;height:40px;background:var(--teal);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;letter-spacing:-1px;color:#1C2626}
+  .header-title{font-size:22px;font-weight:700;letter-spacing:-.5px}
+  .header-sub{font-size:12px;color:#94a3b8;margin-top:2px}
+  .header-meta{text-align:right}
+  .header-date{font-size:12px;color:#94a3b8}
+  .header-entity{font-size:13px;color:#cbd5e1;margin-top:2px;font-weight:500}
+  .header-nav{display:flex;gap:2px;margin-top:24px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .nav-tab{padding:10px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;text-decoration:none;display:inline-block}
+  .nav-tab:hover{color:#e2e8f0}
+  .nav-tab.active{color:#fff;border-bottom-color:var(--teal)}
+
+  /* LAYOUT */
+  .main{max-width:1280px;margin:0 auto;padding:32px 32px}
+  .section{display:none}
+  .section.active{display:block}
+
+  /* CARDS */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .card-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+  /* KPI GRID */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px}
+  .kpi.blue::before{background:var(--teal)}
+  .kpi.green::before{background:var(--green)}
+  .kpi.amber::before{background:var(--amber)}
+  .kpi.indigo::before{background:var(--indigo)}
+  .kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px}
+  .kpi-value{font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1}
+  .kpi-value.blue{color:var(--navy)}
+  .kpi-value.green{color:var(--green)}
+  .kpi-value.amber{color:var(--amber)}
+  .kpi-value.indigo{color:var(--indigo)}
+  .kpi-sub{font-size:12px;color:var(--muted);margin-top:6px}
+  .kpi-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px}
+  .kpi-badge.up{background:var(--green-light);color:var(--green)}
+  .kpi-badge.down{background:var(--red-light);color:var(--red)}
+  .kpi-badge.neutral{background:var(--indigo-light);color:var(--indigo)}
+
+  /* CHARTS ROW */
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+  .chart-wrap{height:320px;position:relative}
+
+  /* STATUS ROW */
+  .status-row{display:flex;gap:12px;margin-top:12px}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600}
+  .status-pill.standb{background:var(--amber-light);color:var(--amber)}
+  .status-pill.valid{background:var(--green-light);color:var(--green)}
+  .status-pill.ok{background:var(--indigo-light);color:var(--indigo)}
+  .status-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .status-dot.standb{background:var(--amber)}
+  .status-dot.valid{background:var(--green)}
+  .status-dot.ok{background:var(--indigo)}
+
+  /* TABLE */
+  .table-controls{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .search-box{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border .2s;background:var(--surface)}
+  .search-box:focus{border-color:var(--teal)}
+  .filter-select{padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer;background:var(--surface);color:var(--text)}
+  .filter-select:focus{border-color:var(--teal)}
+  .results-count{font-size:12px;color:var(--muted);white-space:nowrap}
+
+  .table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;background:var(--surface)}
+  thead th{background:#f1f5f9;padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--border)}
+  tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
+  tbody tr:last-child{border-bottom:none}
+  tbody tr:hover{background:#f8fafc}
+  td{padding:12px 14px;vertical-align:middle}
+  .td-desc{font-weight:500;max-width:200px}
+  .td-ref{font-size:11px;color:var(--muted);font-family:monospace;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .td-cat{font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .td-amount{font-weight:700;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .td-amount.neg{color:var(--navy)}
+  .td-amount.zero{color:var(--muted)}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+  .badge.standb{background:var(--amber-light);color:var(--amber)}
+  .badge.valid{background:var(--green-light);color:var(--green)}
+  .badge.ok{background:var(--indigo-light);color:var(--indigo)}
+  .badge.recup{background:var(--teal-light);color:var(--navy)}
+  .badge.nrecup{background:#f1f5f9;color:var(--muted)}
+
+  /* SUPPLIER CARDS */
+  .supplier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+  .supplier-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);transition:box-shadow .2s}
+  .supplier-card:hover{box-shadow:var(--shadow-md)}
+  .supplier-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin-bottom:12px;color:#fff}
+  .supplier-name{font-weight:700;font-size:15px;margin-bottom:4px}
+  .supplier-cat{font-size:11px;color:var(--muted);margin-bottom:12px}
+  .supplier-amount{font-size:20px;font-weight:800;color:var(--navy);letter-spacing:-0.5px}
+  .supplier-amount-label{font-size:11px;color:var(--muted)}
+  .supplier-bar{height:4px;background:#f1f5f9;border-radius:2px;margin-top:12px;overflow:hidden}
+  .supplier-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--teal),var(--navy))}
+
+  /* SUMMARY CARDS */
+  .summary-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
+
+  /* PROGRESS */
+  .progress-list{display:flex;flex-direction:column;gap:12px}
+  .progress-item{display:flex;gap:12px;align-items:center}
+  .progress-label{width:200px;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+  .progress-bar{flex:1;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden}
+  .progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--navy))}
+  .progress-value{width:90px;text-align:right;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0}
+
+  /* SECTION TITLE */
+  .section-title{font-size:18px;font-weight:700;margin-bottom:20px;color:var(--text)}
+  .section-desc{font-size:13px;color:var(--muted);margin-top:4px;margin-bottom:20px}
+
+  /* DIVIDER */
+  .divider{height:1px;background:var(--border);margin:24px 0}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+
+  /* CHIP */
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+  .chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s}
+  .chip:hover{border-color:var(--teal);color:var(--navy)}
+  .chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr)}
+    .charts-row{grid-template-columns:1fr}
+    .summary-row{grid-template-columns:1fr}
+    .main{padding:20px 16px}
+    .header-inner{padding:20px 16px 0}
+    .header-top{flex-direction:column}
+    .header-meta{text-align:left}
+    .header-nav{overflow-x:auto}
+  }
+  @media(max-width:540px){
+    .kpi-grid{grid-template-columns:1fr}
+    .kpi-value{font-size:22px}
+    .header-title{font-size:18px}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-logo">
+        <div class="logo-mark">11E</div>
+        <div>
+          <div class="header-title">11 ELZEVIR — Contract Management</div>
+          <div class="header-sub">208 m² · Paris · HAIKU SAS</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="header-date">Arrêté au 31 mars 2026</div>
+        <div class="header-entity">Mis à jour le 03/03/2026</div>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-tab active" onclick="showSection('synthese',this)">Vue d'ensemble</button>
+      <button class="nav-tab" onclick="showSection('contrats',this)">Contrats</button>
+      <button class="nav-tab" onclick="showSection('budget',this)">Budget & Réel</button>
+      <button class="nav-tab" onclick="showSection('fournisseurs',this)">Fournisseurs</button>
+    </nav>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ============================
+     SECTION 1 — VUE D'ENSEMBLE
+============================= -->
+<div class="section active" id="section-synthese">
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi blue">
+      <div class="kpi-label">Budget total 2026</div>
+      <div class="kpi-value blue">307 795 €</div>
+      <div class="kpi-sub">Charges HT — hors TVA</div>
+      <div class="kpi-badge neutral">≈ 16 contrats actifs</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Budget total 2025</div>
+      <div class="kpi-value green">309 569 €</div>
+      <div class="kpi-sub">Référence année précédente</div>
+      <div class="kpi-badge up">↓ 1 774 € vs 2026</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Contrats en portefeuille</div>
+      <div class="kpi-value amber">26</div>
+      <div class="kpi-sub">Toutes années confondues</div>
+      <div class="status-row" style="margin-top:8px">
+        <span class="status-pill standb"><span class="status-dot standb"></span>Stand-By ×21</span>
+        <span class="status-pill valid"><span class="status-dot valid"></span>Validé ×21</span>
+      </div>
+    </div>
+    <div class="kpi indigo">
+      <div class="kpi-label">Surface & Entité</div>
+      <div class="kpi-value indigo">208 m²</div>
+      <div class="kpi-sub">HAIKU SAS — Actif 11 ELZEVIR</div>
+      <div class="kpi-badge neutral">Charge/m² 2026 : 1 480 €</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Répartition budget 2026</span>
+        <span style="font-size:12px;color:var(--muted)">Hors loyers</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chartDonut"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Budget 2025 vs 2026</span>
+        <span style="font-size:12px;color:var(--muted)">Principales catégories (€ HT)</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chartCompar"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP CHARGES -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Top charges 2026 — détail par poste</span>
+    </div>
+    <div class="progress-list" id="progressList"></div>
+  </div>
+
+</div><!-- end synthese -->
+
+<!-- ============================
+     SECTION 2 — CONTRATS
+============================= -->
+<div class="section" id="section-contrats">
+
+  <div class="section-title">Portefeuille de contrats</div>
+
+  <div class="chip-row" id="statusChips">
+    <div class="chip active" data-filter="all">Tous</div>
+    <div class="chip" data-filter="Stand-By">Stand-By</div>
+    <div class="chip" data-filter="Validé">Validé</div>
+    <div class="chip" data-filter="Ok">Ok</div>
+  </div>
+
+  <div class="table-controls">
+    <input class="search-box" id="searchBox" type="text" placeholder="Rechercher un contrat, fournisseur, référence…" oninput="filterContracts()">
+    <select class="filter-select" id="catFilter" onchange="filterContracts()">
+      <option value="">Toutes catégories</option>
+    </select>
+    <span class="results-count" id="resultsCount"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="contractTable">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Fournisseur</th>
+          <th>Réf. Contrat</th>
+          <th>Catégorie</th>
+          <th>Période</th>
+          <th style="text-align:right">Montant HT</th>
+          <th>Statut</th>
+          <th>Récup.</th>
+        </tr>
+      </thead>
+      <tbody id="contractBody"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg" style="display:none">Aucun contrat ne correspond aux critères.</div>
+  </div>
+
+</div><!-- end contrats -->
+
+<!-- ============================
+     SECTION 3 — BUDGET & RÉEL
+============================= -->
+<div class="section" id="section-budget">
+
+  <div class="section-title">Suivi Budget / Réel</div>
+
+  <!-- Budget vs Réel — full width -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-header">
+      <span class="card-title">Budget 2025 vs Réel 2025 — par poste</span>
+      <span style="font-size:12px;color:var(--muted)">€ HT · postes avec données réelles disponibles</span>
+    </div>
+    <!-- KPIs rapides -->
+    <div style="display:flex;gap:24px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="padding:12px 20px;background:var(--teal-light);border-radius:8px;border-left:3px solid var(--teal)">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Total budget</div>
+        <div style="font-size:20px;font-weight:800;color:var(--navy);margin-top:2px">22 726 €</div>
+      </div>
+      <div style="padding:12px 20px;background:#f0fdf4;border-radius:8px;border-left:3px solid var(--green)">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Total réalisé</div>
+        <div style="font-size:20px;font-weight:800;color:var(--green);margin-top:2px">19 231 €</div>
+      </div>
+      <div style="padding:12px 20px;background:#fef3c7;border-radius:8px;border-left:3px solid var(--amber)">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Écart (économie)</div>
+        <div style="font-size:20px;font-weight:800;color:var(--amber);margin-top:2px">− 3 495 €</div>
+      </div>
+      <div style="padding:12px 20px;background:#f0fdf4;border-radius:8px;border-left:3px solid var(--green)">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Taux de réalisation</div>
+        <div style="font-size:20px;font-weight:800;color:var(--green);margin-top:2px">84,6 %</div>
+      </div>
+    </div>
+    <div style="height:300px;position:relative">
+      <canvas id="chartBudgetReel"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Charges réelles 2025 — mensuel</span>
+        <span style="font-size:12px;color:var(--muted)">€ HT · hors virements internes</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chartMonthly"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Budget 2026 — répartition hors loyers</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chartBar2026"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Statuts des lignes budget</span></div>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:8px">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">Stand-By <span style="color:var(--muted)">(à valider)</span></span>
+            <span style="font-weight:700;color:var(--amber)">21 lignes</span>
+          </div>
+          <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="width:36%;height:100%;background:var(--amber);border-radius:4px"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">Validé <span style="color:var(--muted)">(2025)</span></span>
+            <span style="font-weight:700;color:var(--green)">21 lignes</span>
+          </div>
+          <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="width:36%;height:100%;background:var(--green);border-radius:4px"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">Ok <span style="color:var(--muted)">(2024 — clôturé)</span></span>
+            <span style="font-weight:700;color:var(--indigo)">16 lignes</span>
+          </div>
+          <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="width:28%;height:100%;background:var(--indigo);border-radius:4px"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Charges réelles 2025 par poste</span></div>
+      <div class="progress-list">
+        <div class="progress-item"><span class="progress-label">Nettoyage & Déchêts</span><div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div><span class="progress-value">7 993 €</span></div>
+        <div class="progress-item"><span class="progress-label">Fluides & Électricité</span><div class="progress-bar"><div class="progress-fill" style="width:99%"></div></div><span class="progress-value">8 107 €</span></div>
+        <div class="progress-item"><span class="progress-label">Maintenance IT</span><div class="progress-bar"><div class="progress-fill" style="width:14%"></div></div><span class="progress-value">1 125 €</span></div>
+        <div class="progress-item"><span class="progress-label">Internet & Téléphonie</span><div class="progress-bar"><div class="progress-fill" style="width:13%"></div></div><span class="progress-value">1 042 €</span></div>
+        <div class="progress-item"><span class="progress-label">F&B / Café</span><div class="progress-bar"><div class="progress-fill" style="width:12%"></div></div><span class="progress-value">964 €</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Récapitulatif financier</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--muted)">Budget 2026 (HT)</span>
+          <span style="font-weight:700;font-size:15px">307 795 €</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--muted)">Budget 2025 (HT)</span>
+          <span style="font-weight:700;font-size:15px">309 569 €</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--muted)">Loyers 2026 (sur budget)</span>
+          <span style="font-weight:700;font-size:15px">264 000 €</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--muted)">Charges exploit. 2026</span>
+          <span style="font-weight:700;font-size:15px;color:var(--blue)">43 795 €</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+          <span style="font-size:13px;color:var(--muted)">Surface 208 m² · €/m²</span>
+          <span style="font-weight:700;font-size:15px">1 480 €/m²</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end budget -->
+
+<!-- ============================
+     SECTION 4 — FOURNISSEURS
+============================= -->
+<div class="section" id="section-fournisseurs">
+
+  <div class="section-title">Fournisseurs & Partenaires</div>
+
+  <div class="supplier-grid" id="supplierGrid"></div>
+
+</div><!-- end fournisseurs -->
+
+</div><!-- end main -->
+
+<script>
+// ========== DATA ==========
+const CONTRACTS = [
+  {ref:"A venir",desc:"Imprévu",fournisseur:"A venir",categorie:"Maintenance technique général",montant:-1040,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"2060 TM HAI V1",desc:"Maintenance Informatique",fournisseur:"BETANUM",categorie:"Maintenance IT",montant:-900,periode:2025,statut:"Validé",recup:"R"},
+  {ref:"Contrat BIGJACK",desc:"Ménage / Nettoyage",fournisseur:"BIG JACK",categorie:"Nettoyage & Déchêts",montant:-8201,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"charges 2025",desc:"Charges copropriété",fournisseur:"CITYA Immobilier",categorie:"Charges de copropriété",montant:-2996,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"PV AG 24",desc:"Charges copropriété 2025",fournisseur:"CITYA Immobilier",categorie:"Charges de copropriété",montant:-2798,periode:2025,statut:"Validé",recup:"R"},
+  {ref:"Contrat cadre DGB",desc:"Entretien des deux verrières (4/an)",fournisseur:"DGB TOITURES",categorie:"Maintenance Toiture",montant:-2480,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"CONTRAT CADRE DOSE",desc:"Fourniture de café",fournisseur:"DOSE",categorie:"F&B (Food & Beverage)",montant:-1440,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Contrat 201000811020",desc:"Fourniture électricité privative",fournisseur:"EDF",categorie:"Fluides & Électricité",montant:-10800,periode:2024,statut:"Ok",recup:"R"},
+  {ref:"Contrat Cadre EKWATEUR",desc:"Contrat électricité EKWATEUR",fournisseur:"EKWATEUR",categorie:"Fluides & Électricité",montant:-7224,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Contrat Cadre EKWATEUR 25",desc:"Fourniture électricité privative",fournisseur:"EKWATEUR",categorie:"Fluides & Électricité",montant:-10971,periode:2025,statut:"Validé",recup:"R"},
+  {ref:"contrat cadre FP INCENDIE",desc:"Maintenance SSI",fournisseur:"FP INCENDIE",categorie:"Maintenance SSI",montant:-150,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"D2401010TP",desc:"Travaux modificatifs électricité",fournisseur:"FYP Systemes",categorie:"Travaux",montant:-3597,periode:2024,statut:"Ok",recup:"R"},
+  {ref:"47 35 846 196 396",desc:"Taxe Foncière",fournisseur:"Impôts",categorie:"Taxe Foncière",montant:-3514,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Pas de TB Déclarée",desc:"Taxe Bureau",fournisseur:"Impôts",categorie:"Taxe Bureau",montant:-5632,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Contrat cadre JORO",desc:"Honoraires Contract Management",fournisseur:"JORO OFFICE",categorie:"Honoraires Gestion",montant:-7600,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"contrat livebox profibre",desc:"Internet FTTH Orange",fournisseur:"ORANGE",categorie:"Internet & Téléphonie",montant:-600,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Undisclosed",desc:"Internet FTTH Orange",fournisseur:"ORANGE",categorie:"Internet & Téléphonie",montant:-1300,periode:2025,statut:"Validé",recup:"R"},
+  {ref:"Pennylane suivi comptable",desc:"Frais PENNYLANE",fournisseur:"PENNYLANE",categorie:"Abonnement & Licence",montant:0,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"contrat cadre Polyskills",desc:"Maintenance Informatique",fournisseur:"POLYSKILLS",categorie:"Maintenance IT",montant:-1458,periode:2026,statut:"Stand-By",recup:"NR"},
+  {ref:"083 63236",desc:"Location matériel Reprographie",fournisseur:"Print Value",categorie:"FF&E",montant:-540,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Bail AVENIR - HAIKU",desc:"Loyer Haiku SAS",fournisseur:"SCI L'AVENIR",categorie:"Loyers",montant:-204000,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Bail AVENIR - HOOQ SAS",desc:"Loyer Hooq SAS",fournisseur:"SCI L'AVENIR",categorie:"Loyers",montant:-24000,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Bail AVENIR - Septième sphère",desc:"Loyer Septième sphère",fournisseur:"SCI L'AVENIR",categorie:"Loyers",montant:-36000,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"contrat cadre SOCOTEC",desc:"Vérification périodique électrique",fournisseur:"SOCOTEC",categorie:"Contrôles Réglementaires",montant:-200,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Contrat cadre à venir TEIA",desc:"Logiciel de gestion TEIA",fournisseur:"TEIA",categorie:"Abonnement & Licence",montant:0,periode:2026,statut:"Stand-By",recup:"R"},
+  {ref:"Contrat cadre TOTEM",desc:"Maintenance préventive Sécurité",fournisseur:"TOTEM",categorie:"Sécurité - Vidéo - Contrôle Accès",montant:-720,periode:2026,statut:"Stand-By",recup:"R"},
+];
+
+const BUDGET_2026 = [
+  {cat:"Loyers",montant:264000},
+  {cat:"Nettoyage & Déchêts",montant:8201},
+  {cat:"Honoraires Gestion",montant:7600},
+  {cat:"Fluides & Électricité",montant:7224},
+  {cat:"Taxe Bureau",montant:5632},
+  {cat:"Taxe Foncière",montant:3514},
+  {cat:"Charges copropriété",montant:2996},
+  {cat:"Maintenance Toiture",montant:2480},
+  {cat:"Maintenance IT",montant:1458},
+  {cat:"F&B / Café",montant:1440},
+  {cat:"Maintenance générale",montant:1040},
+  {cat:"Sécurité",montant:720},
+  {cat:"Internet & Téléphonie",montant:600},
+  {cat:"FF&E",montant:540},
+  {cat:"Contrôles réglementaires",montant:200},
+  {cat:"Maintenance SSI",montant:150},
+];
+
+const BUDGET_2025 = {
+  "Loyers":264000,"Fluides & Électricité":10971,"Honoraires Gestion":8640,
+  "Nettoyage & Déchêts":8115,"Taxe Bureau":5632,"Taxe Foncière":3514,
+  "Charges copropriété":2798,"F&B / Café":1440,"Internet & Téléphonie":1300,
+  "Maintenance IT":900,"Sécurité":720,"Maintenance Toiture":620,
+  "FF&E":540,"Contrôles réglementaires":230,"Maintenance équipements":150
+};
+
+const MONTHLY_2025 = {1:2767,2:2435,3:2521,4:2979,5:3248,6:1984,7:2271,8:1786,9:1591,10:1469,11:1263,12:891};
+// Note: cleaned to exclude large one-off transfers & loyers
+
+const SUPPLIERS = [
+  {name:"SCI L'AVENIR",cat:"Bailleur",total2026:264000,color:"#1C2626",realise:0},
+  {name:"BIG JACK",cat:"Nettoyage & Déchêts",total2026:8201,realise:7993,color:"#81C8C1"},
+  {name:"EKWATEUR / EDF",cat:"Fluides & Électricité",total2026:7224,realise:8107,color:"#4a9e97"},
+  {name:"JORO OFFICE",cat:"Honoraires Gestion",total2026:7600,realise:0,color:"#1C2626"},
+  {name:"Impôts (Taxes)",cat:"Taxe Bureau + Foncière",total2026:9146,realise:0,color:"#dc2626"},
+  {name:"CITYA Immobilier",cat:"Charges copropriété",total2026:2996,realise:1841,color:"#d97706"},
+  {name:"DGB TOITURES",cat:"Maintenance Toiture",total2026:2480,realise:0,color:"#059669"},
+  {name:"DOSE",cat:"F&B / Café",total2026:1440,realise:964,color:"#db2777"},
+  {name:"POLYSKILLS",cat:"Maintenance IT",total2026:1458,realise:0,color:"#81C8C1"},
+  {name:"ORANGE",cat:"Internet & Téléphonie",total2026:600,realise:1709,color:"#ea580c"},
+  {name:"BETANUM",cat:"Maintenance IT",total2026:0,realise:2680,color:"#4a9e97"},
+  {name:"TOTEM",cat:"Sécurité",total2026:720,realise:0,color:"#1C2626"},
+];
+
+// ========== UTILS ==========
+function fmt(n){
+  if(n===0||n===null||n===undefined) return '—';
+  return Math.abs(n).toLocaleString('fr-FR')+" €";
+}
+function statusClass(s){
+  if(s==="Stand-By") return "standb";
+  if(s==="Validé") return "valid";
+  if(s==="Ok") return "ok";
+  return "";
+}
+
+// ========== NAVIGATION ==========
+function showSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ========== CHARTS ==========
+const JORO_DARK = '#1C2626';
+const JORO_TEAL = '#81C8C1';
+
+// Donut — répartition hors loyers
+const donutData = BUDGET_2026.filter(d=>d.cat!=="Loyers");
+const donutColors = [JORO_TEAL,"#059669","#d97706","#4a9e97","#dc2626","#0891b2","#16a34a","#db2777",JORO_DARK,"#ea580c","#4338ca","#65a30d","#b45309","#0f766e","#6d28d9"];
+new Chart(document.getElementById('chartDonut'),{
+  type:'doughnut',
+  data:{
+    labels:donutData.map(d=>d.cat),
+    datasets:[{data:donutData.map(d=>d.montant),backgroundColor:donutColors,borderWidth:2,borderColor:'#fff'}]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{position:'right',labels:{boxWidth:10,font:{size:11,family:'Inter'},padding:8}},
+      tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed.toLocaleString('fr-FR')} €`}}
+    },
+    cutout:'62%'
+  }
+});
+
+// Bar — comparaison 2025 vs 2026 (top categories, hors loyers)
+const compareCategories = ["Nettoyage & Déchêts","Honoraires Gestion","Fluides & Électricité","Taxe Bureau","Taxe Foncière","Maintenance IT","F&B / Café","Internet & Téléphonie"];
+new Chart(document.getElementById('chartCompar'),{
+  type:'bar',
+  data:{
+    labels:compareCategories.map(c=>c.length>18?c.slice(0,18)+'…':c),
+    datasets:[
+      {label:'2025',data:compareCategories.map(c=>BUDGET_2025[c]||0),backgroundColor:'rgba(129,200,193,.35)',borderRadius:4},
+      {label:'2026',data:compareCategories.map(c=>BUDGET_2026.find(d=>d.cat===c)?.montant||0),backgroundColor:'rgba(28,38,38,.8)',borderRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{position:'top',labels:{font:{size:11,family:'Inter'},boxWidth:10}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.x.toLocaleString('fr-FR')} €`}}},
+    scales:{x:{ticks:{callback:v=>v.toLocaleString('fr-FR')+'€',font:{size:10}},grid:{color:'#f1f5f9'}},y:{ticks:{font:{size:10}},grid:{display:false}}}
+  }
+});
+
+// ========== BUDGET VS RÉEL 2025 ==========
+const bvr_cats = ['Fluides & Électricité','Nettoyage & Déchêts','F&B / Café','Internet & Téléphonie','Maintenance IT'];
+const bvr_budget = [10971, 8115, 1440, 1300, 900];
+const bvr_reel   = [8107,  7993, 964,  1042, 1125];
+new Chart(document.getElementById('chartBudgetReel'),{
+  type:'bar',
+  data:{
+    labels:bvr_cats,
+    datasets:[
+      {label:'Budget 2025',data:bvr_budget,backgroundColor:'rgba(129,200,193,.5)',borderColor:JORO_TEAL,borderWidth:1.5,borderRadius:5},
+      {label:'Réel 2025',data:bvr_reel,backgroundColor:'rgba(28,38,38,.85)',borderColor:JORO_DARK,borderWidth:1.5,borderRadius:5}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{position:'top',labels:{font:{size:12,family:'Inter'},boxWidth:12,padding:16}},
+      tooltip:{callbacks:{
+        label:c=>`${c.dataset.label} : ${c.parsed.y.toLocaleString('fr-FR')} €`,
+        afterDatasetsDraw(ctx){
+          const budget = ctx.chart.data.datasets[0].data;
+          const reel = ctx.chart.data.datasets[1].data;
+          budget.forEach((b,i)=>{
+            const r=reel[i];
+            const ecart=r-b;
+            const pct=Math.round(r/b*100);
+          });
+        }
+      }}
+    },
+    scales:{
+      x:{ticks:{font:{size:11,family:'Inter'}},grid:{display:false}},
+      y:{ticks:{callback:v=>v.toLocaleString('fr-FR')+'€',font:{size:10}},grid:{color:'#f1f5f9'}}
+    }
+  }
+});
+
+// Bar monthly 2025
+const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+new Chart(document.getElementById('chartMonthly'),{
+  type:'line',
+  data:{
+    labels:months,
+    datasets:[{
+      label:'Charges réelles 2025 (€ HT)',
+      data:Object.values(MONTHLY_2025),
+      borderColor:JORO_TEAL,backgroundColor:'rgba(129,200,193,.1)',
+      pointBackgroundColor:JORO_DARK,pointRadius:4,pointHoverRadius:6,
+      tension:.35,fill:true,borderWidth:2
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y.toLocaleString('fr-FR')} €`}}},
+    scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{callback:v=>v.toLocaleString('fr-FR')+'€',font:{size:10}},grid:{color:'#f1f5f9'}}}
+  }
+});
+
+// Horizontal bar 2026 budget
+const budget26noLoyers = BUDGET_2026.filter(d=>d.cat!=="Loyers");
+new Chart(document.getElementById('chartBar2026'),{
+  type:'bar',
+  data:{
+    labels:budget26noLoyers.map(d=>d.cat.length>20?d.cat.slice(0,20)+'…':d.cat),
+    datasets:[{label:'Budget 2026 (€ HT)',data:budget26noLoyers.map(d=>d.montant),backgroundColor:'rgba(28,38,38,.8)',borderRadius:4}]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.x.toLocaleString('fr-FR')} €`}}},
+    scales:{x:{ticks:{callback:v=>v.toLocaleString('fr-FR')+'€',font:{size:10}},grid:{color:'#f1f5f9'}},y:{ticks:{font:{size:10}},grid:{display:false}}}
+  }
+});
+
+// ========== PROGRESS LIST ==========
+const maxVal = BUDGET_2026[0].montant;
+const pl = document.getElementById('progressList');
+BUDGET_2026.forEach(item=>{
+  const pct = Math.round(item.montant/maxVal*100);
+  pl.innerHTML+=`<div class="progress-item">
+    <span class="progress-label">${item.cat}</span>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <span class="progress-value">${item.montant.toLocaleString('fr-FR')} €</span>
+  </div>`;
+});
+
+// ========== CONTRACTS TABLE ==========
+let activeStatusFilter = 'all';
+
+// Populate category filter
+const cats = [...new Set(CONTRACTS.map(c=>c.categorie))].sort();
+const catSel = document.getElementById('catFilter');
+cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;catSel.appendChild(o)});
+
+// Status chip filter
+document.querySelectorAll('#statusChips .chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    activeStatusFilter = chip.dataset.filter;
+    filterContracts();
+  });
+});
+
+function filterContracts(){
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const tbody = document.getElementById('contractBody');
+  tbody.innerHTML='';
+
+  const filtered = CONTRACTS.filter(c=>{
+    const matchQ = !q || [c.desc,c.fournisseur,c.ref,c.categorie].some(f=>f.toLowerCase().includes(q));
+    const matchCat = !cat || c.categorie===cat;
+    const matchStat = activeStatusFilter==='all' || c.statut===activeStatusFilter;
+    return matchQ && matchCat && matchStat;
+  });
+
+  document.getElementById('resultsCount').textContent = filtered.length+' résultat'+(filtered.length>1?'s':'');
+
+  if(filtered.length===0){
+    document.getElementById('emptyMsg').style.display='block';
+    return;
+  }
+  document.getElementById('emptyMsg').style.display='none';
+
+  filtered.forEach(c=>{
+    const sc = statusClass(c.statut);
+    const rc = c.recup==='R'?'recup':'nrecup';
+    const rl = c.recup==='R'?'Récup.':'Non récup.';
+    tbody.innerHTML+=`<tr>
+      <td class="td-desc">${c.desc}</td>
+      <td style="font-weight:500">${c.fournisseur}</td>
+      <td class="td-ref" title="${c.ref}">${c.ref}</td>
+      <td class="td-cat" title="${c.categorie}">${c.categorie}</td>
+      <td>${c.periode}</td>
+      <td class="td-amount ${c.montant<0?'neg':'zero'}">${fmt(c.montant)}</td>
+      <td><span class="badge ${sc}">${c.statut}</span></td>
+      <td><span class="badge ${rc}">${rl}</span></td>
+    </tr>`;
+  });
+}
+filterContracts();
+
+// ========== SUPPLIERS ==========
+const maxSupplierBudget = Math.max(...SUPPLIERS.map(s=>s.total2026));
+const sg = document.getElementById('supplierGrid');
+SUPPLIERS.forEach(s=>{
+  const pct = Math.round(s.total2026/maxSupplierBudget*100);
+  const initials = s.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  sg.innerHTML+=`<div class="supplier-card">
+    <div class="supplier-icon" style="background:${s.color}">${initials}</div>
+    <div class="supplier-name">${s.name}</div>
+    <div class="supplier-cat">${s.cat}</div>
+    <div class="supplier-amount">${s.total2026>0?s.total2026.toLocaleString('fr-FR')+' €':'—'}</div>
+    <div class="supplier-amount-label">Budget 2026 (HT)${s.realise>0?' · Réalisé 2025 : '+s.realise.toLocaleString('fr-FR')+' €':''}</div>
+    <div class="supplier-bar"><div class="supplier-bar-fill" style="width:${pct}%"></div></div>
+  </div>`;
+});
+</script>
+</body>
+</html>
